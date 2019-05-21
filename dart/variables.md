@@ -52,5 +52,125 @@ printLength () {
 官方推荐使用`var`关键字来定义本地变量
 {% endhint %}
 
+### 默认值
+
+```text
+int count;
+assert(count == null);
+```
+
+未设初值的变量会被设为`null` 哪怕是数字类型的变量，因为 _numbers-like_ 的值在 Dart 中都是对象。
+
+### Final 和 const
+
+使用 `final` 或 `const` 定义一个不会改变的值，好于用 `var` 或者固定的类型。两者的区别是：`const` 定义的是编译时常量，`final` 定义的顶层变量或类属性在第一次使用时被初始化。
+
+{% hint style="info" %}
+实例变量需定义为 `final` 而非 `const`，且必须在构造器运行之前被初始化——变量通过构造器参数传参或构造器初始化列表声明的时候
+{% endhint %}
+
+## 内置类型
+
+内置类型列表：
+
+* numbers
+* strings
+* booleans
+* lists
+* sets
+* maps
+* runes
+* symbols
+
+### Numbers
+
+#### int
+
+整型占用 64 bits 空间。根据平台差异，在 Dart VM 取值范围是 -2^63 到 2^63 - 1，当 Dart 编译为 JavaScript 时，取值范围变成 -2^53 到 2^53 - 1。
+
+#### double
+
+双精度浮点型是标准 IEEE 754。
+
+`int` 和 `double` 都是 `num` 的子类型。如果 `num` 及其子类中没有找到想使用的方法，可以到`dart:math` 库找找。
+
+### Strings
+
+Dart 的字符串采用 UTF-16 编码。可以使用 `${表达式}` 语法。如果表达式是一个变量，可以省略 {}，Dart 会调用对象的 `toString` 方法。
+
+```dart
+var s = 'string interpolation';
+
+assert('Dart has $s, which is very handy.' == 'Dart has string interpolation, which is very handy.');
+assert('That deserves all caps. ${s.toUpperCase()} is very handy!' == 'That deserves all caps. STRING INTERPOLATION is very handy!');
+```
+
+多行字符串语法：使用三连单引号或双引号。
+
+```dart
+var s1 = '''
+You can create
+multi-line strings like this one.
+''';
+var s2 = """This is also a
+multi-line string.""";
+```
+
+### Booleans
+
+Dart 是类型安全语言，所以不能使用 `if (非布尔值)` 这种代码。
+
+### Lists
+
+Dart 的 `List` 相当于其他语言的 array。
+
+{% hint style="info" %}
+Dart 默认推断 list 具有类型 `List<int>` 如果在 list 添加非数字类型会导致异常。
+{% endhint %}
+
+如果在数组中使用展开运算符的右值有可能是 null，可以使用 _空值敏感展开运算符_\(`...?`\)
+
+```dart
+var list;
+var list2 = [0, ...?list];
+assert(list2.length == 1);
+```
+
+collection if:
+
+```dart
+var nav = [
+  'Home',
+  'Furniture',
+  'Plants',
+  if (promoActive) 'Outlet'
+];
+```
+
+collection for:
+
+```dart
+var listOfInts = [1, 2, 3];
+var listOfStrings = [
+  '#0',
+  for (var i in listOfInts) '#$i'
+];
+assert(listOfStrings[1] == '#1');
+```
+
+### Sets
+
+Dart 中的 Set 是无序无相同项的集合。
+
+```dart
+var halogens = {'fluorine', 'chlorine', 'bromine', 'iodine', 'astatine'};
+```
+
+{% hint style="info" %}
+Dart 默认推断 Set 的类型为 `Set<String> 添加错误的类型会导致异常。`
+{% endhint %}
+
+
+
 
 
