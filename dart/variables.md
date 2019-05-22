@@ -1,4 +1,4 @@
-# Variables
+# Tour
 
 ## 定义变量
 
@@ -206,6 +206,77 @@ var clapping = '\u{1f44f}';
 ```dart
 #bar
 ```
+
+## 函数
+
+Dart 的函数参数分为必传参数和可选参数。
+
+### 可选参数
+
+可选参数分为 位置可选参数和命名可选参数：
+
+Flutter 中大量使用了命名可选参数，官方说法是这样的语法更加清晰。
+
+```dart
+/// Sets the [bold] and [hidden] flags ...
+void enableFlags({bool bold, bool hidden}) {...}
+// when calling a function
+enableFlags(bold: true, hidden: false);
+```
+
+### 主函数
+
+每个 APP 必须有一个顶层的主函数，作为 APP 的入口函数。
+
+### 匿名函数
+
+```dart
+/* 格式
+  ([[Type] param1[, …]]) { 
+    codeBlock; 
+  }; 
+*/
+
+var list = ['apples', 'bananas', 'oranges'];
+list.forEach((item) {
+  print('${list.indexOf(item)}: $item');
+});
+```
+
+### 返回值
+
+如果函数没有指定返回值，会返回 null。
+
+## 运算符
+
+JavaScript 中没有的运算符列表：
+
+| 描述 | 运算符 |
+| :--- | :--- |
+| 一元后缀 | `?.`  |
+| 乘法类 | `~/`  |
+| 按位 | `&` `|`  |
+| 类型检测 | `as` `is` `is!`  |
+| if null | `??`  |
+| 层叠 | `..`  |
+
+### 类型检测运算符
+
+```dart
+// 1
+if (emp is Person) {
+  // Type check
+  emp.firstName = 'Bob';
+}
+// 2
+(emp as Person).firstName = 'Bob';
+```
+
+{% hint style="info" %}
+代码段 1 和 2 并不等价。如果 emp 不是 Person 类型或者是 null，1 不会做任何事，2 会抛出异常。
+{% endhint %}
+
+
 
 
 
