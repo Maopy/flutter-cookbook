@@ -125,7 +125,7 @@ Dart 是类型安全语言，所以不能使用 `if (非布尔值)` 这种代码
 Dart 的 `List` 相当于其他语言的 array。
 
 {% hint style="info" %}
-Dart 默认推断 list 具有类型 `List<int>` 如果在 list 添加非数字类型会导致异常。
+Dart 的 List 会根据初始值做类型推断，添加其他类型元素会导致异常。
 {% endhint %}
 
 如果在数组中使用展开运算符的右值有可能是 null，可以使用 _空值敏感展开运算符_\(`...?`\)
@@ -167,8 +167,45 @@ var halogens = {'fluorine', 'chlorine', 'bromine', 'iodine', 'astatine'};
 ```
 
 {% hint style="info" %}
-Dart 默认推断 Set 的类型为 `Set<String> 添加错误的类型会导致异常。`
+Dart 的 Set 会根据初始值做类型推断，添加其他类型元素会导致异常。
 {% endhint %}
+
+添加元素的方法：
+
+```dart
+var elements = <String>{};
+elements.add('fluorine');
+elements.addAll(halogens);
+```
+
+### Maps
+
+map 的 key 和 value 可以是任意类型，但 key 不可以重复。
+
+```dart
+var gifts = new Map();
+var nobleGases = Map(); // 在 Dart 2，new 关键字可以省略
+```
+
+在 map 中检索一个不存在的 key 会返回 null。
+
+map 中也可以使用 `...` `...?` `collection if` `collection for` 。
+
+### Runes
+
+Dart 的 runes 是 UTF-32 编码的字符串。
+
+```dart
+var clapping = '\u{1f44f}';
+```
+
+### Symbols
+
+还不太懂。。
+
+```dart
+#bar
+```
 
 
 
