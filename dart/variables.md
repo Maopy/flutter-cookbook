@@ -276,6 +276,64 @@ if (emp is Person) {
 代码段 1 和 2 并不等价。如果 emp 不是 Person 类型或者是 null，1 不会做任何事，2 会抛出异常。
 {% endhint %}
 
+## 类
+
+### 使用构造函数
+
+构造函数的名字可以是 `类名` 或 `类名.标识符` !
+
+```dart
+var p1 = Point(2, 2);
+var p2 = Point.fromJson({'x': 1, 'y': 2});
+```
+
+构造2个相同的编译时常量实例，他们是相等的！
+
+```dart
+var a = const ImmutablePoint(1, 1);
+var b = const ImmutablePoint(1, 1);
+
+assert(identical(a, b)); // They are the same instance!
+```
+
+### 实例变量
+
+```dart
+class Point {
+  num x; // Declare instance variable x, initially null.
+  num y; // Declare y, initially null.
+  num z = 0; // Declare z, initially 0.
+}
+```
+
+每个实例会隐式给每个属性创建一个 getter 方法，如果是非 final 属性，还会隐式创建一个 setter 方法。
+
+### 构造函数
+
+```dart
+class Point {
+  num x, y;
+
+  Point(num x, num y) {
+    // There's a better way to do this, stay tuned.
+    this.x = x;
+    this.y = y;
+  }
+}
+```
+
+由于构造函数初始化赋值的操作太常见，Dart 有一个简化的语法糖！
+
+```dart
+class Point {
+  num x, y;
+
+  // Syntactic sugar for setting x and y
+  // before the constructor body runs.
+  Point(this.x, this.y);
+}
+```
+
 
 
 
