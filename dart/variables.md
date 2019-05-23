@@ -334,6 +334,267 @@ class Point {
 }
 ```
 
+#### 命名构造函数
+
+可以使用命名构造函数来实现一个类的多个构造函数：
+
+```dart
+class Point {
+  num x, y;
+
+  Point(this.x, this.y);
+
+  // Named constructor
+  Point.origin() {
+    x = 0;
+    y = 0;
+  }
+}
+```
+
+注意，子类的命名构造函数是不会默认继承父类的。如果有这种需要，需要在子类的构造函数中自行实现。
+
+#### 调用父类非默认构造函数
+
+默认情况下，子类的构造函数会调用父类的非命名无参构造函数。父类的构造函数在子类的构造函数体最开始的位置被调用。如果同时使用了初始化列表，它会在父类之前被调用。简单来说，执行顺序如下：
+
+1. 初始化列表
+2. 父类无参构造函数
+3. 主类无参构造函数
+
+如果父类没有定义非命名无参构造函数，那么你必须手动调用父类的某一个构造函数。在 `:` 后面指定父类的构造函数。
+
+```dart
+class Person {
+  String firstName;
+
+  Person.fromJson(Map data) {
+    print('in Person');
+  }
+}
+
+class Employee extends Person {
+  // Person does not have a default constructor;
+  // you must call super.fromJson(data).
+  Employee.fromJson(Map data) : super.fromJson(data) {
+    print('in Employee');
+  }
+}
+
+main() {
+  var emp = new Employee.fromJson({});
+
+  // Prints:
+  // in Person
+  // in Employee
+  if (emp is Person) {
+    // Type check
+    emp.firstName = 'Bob';
+  }
+  (emp as Person).firstName = 'Bob';
+}
+```
+
+#### 初始化列表
+
+除了调用父类的构造函数，你还可以在构造函数运行之前初始化实例属性。
+
+```dart
+// Initializer list sets instance variables before
+// the constructor body runs.
+Point.fromJson(Map<String, num> json)
+    : x = json['x'],
+      y = json['y'] {
+  print('In Point.fromJson(): ($x, $y)');
+}
+```
+
+可以利用这个特性来做输入校验
+
+```dart
+Point.withAssert(this.x, this.y) : assert(x >= 0) {
+  print('In Point.withAssert(): ($x, $y)');
+}
+```
+
+初始化列表用来做 final 属性的初始化非常方便。
+
+```dart
+import 'dart:math';
+
+class Point {
+  final num x;
+  final num y;
+  final num distanceFromOrigin;
+
+  Point(x, y)
+      : x = x,
+        y = y,
+        distanceFromOrigin = sqrt(x * x + y * y);
+}
+
+main() {
+  var p = new Point(2, 3);
+  print(p.distanceFromOrigin);
+}
+```
+
+#### 重定向构造函数
+
+唯一目的是重定向到同一个类其他构造函数的构造函数。重定向构造函数没有函数体。
+
+```dart
+class Point {
+  num x, y;
+
+  // The main constructor for this class.
+  Point(this.x, this.y);
+
+  // Delegates to the main constructor.
+  Point.alongXAxis(num x) : this(x, 0);
+}
+```
+
+#### 常量构造函数
+
+如果类创造的对象是不会变化的，可以把这些对象置为编译时常量。为此，定义常量构造函数并保证所有的实例属性都是 final 的。
+
+```dart
+class ImmutablePoint {
+  static final ImmutablePoint origin =
+      const ImmutablePoint(0, 0);
+
+  final num x, y;
+
+  const ImmutablePoint(this.x, this.y);
+}
+```
+
+#### 工厂构造函数
+
+要实现不总是返回一个新的实例的构造函数，使用 `factory` 关键字。工厂构造函数可能返回一个缓存的实例，或者一个子类的实例。
+
+```dart
+class Logger {
+  final String name;
+  bool mute = false;
+
+  // _cache is library-private, thanks to
+  // the _ in front of its name.
+  static final Map<String, Logger> _cache =
+      <String, Logger>{};
+
+  factory Logger(String name) {
+    if (_cache.containsKey(name)) {
+      return _cache[name];
+    } else {
+      final logger = Logger._internal(name);
+      _cache[name] = logger;
+      return logger;
+    }
+  }
+
+  Logger._internal(this.name);
+
+  void log(String msg) {
+    if (!mute) print(msg);
+  }
+}
+```
+
+### 方法
+
+#### 实例方法
+
+实例方法可以访问实例属性和 `this` 。
+
+#### Getters 和 Setters
+
+```dart
+class Rectangle {
+  num left, top, width, height;
+
+  Rectangle(this.left, this.top, this.width, this.height);
+
+  // Define two calculated properties: right and bottom.
+  num get right => left + width;
+  set right(num value) => left = value - width;
+  num get bottom => top + height;
+  set bottom(num value) => top = value - height;
+}
+
+void main() {
+  var rect = Rectangle(3, 4, 20, 15);
+  assert(rect.left == 3);
+  rect.right = 12;
+  assert(rect.left == -8);
+}
+```
+
+#### 抽象方法
+
+实例方法、getter 和 setter 可以是抽象的，定义一个接口，等待其他的类去实现它。抽象方法只能定义在抽象类中。
+
+```dart
+abstract class Doer {
+  // Define instance variables and methods...
+
+  void doSomething(); // Define an abstract method.
+}
+
+class EffectiveDoer extends Doer {
+  void doSomething() {
+    // Provide an implementation, so the method is not abstract here...
+  }
+}
+```
+
+### 抽象类
+
+使用 `abstract` 修饰符定义一个抽象类，抽象类不能被实例化。抽象类常被用于定义接口。如果想要实例化一个抽象类，可以定义工厂构造函数。
+
+### 隐式接口
+
+每个类都隐式的定义了一个接口，接口包含了该类所有的实例成员及其实现的接口。一个类可以实现多个接口。
+
+```dart
+// A person. The implicit interface contains greet().
+class Person {
+  // In the interface, but visible only in this library.
+  final _name;
+
+  // Not in the interface, since this is a constructor.
+  Person(this._name);
+
+  // In the interface.
+  String greet(String who) => 'Hello, $who. I am $_name.';
+}
+
+// An implementation of the Person interface.
+class Impostor implements Person {
+  get _name => '';
+
+  String greet(String who) => 'Hi $who. Do you know who I am?';
+}
+
+String greetBob(Person person) => person.greet('Bob');
+
+void main() {
+  print(greetBob(Person('Kathy')));
+  print(greetBob(Impostor()));
+}
+```
+
+
+
+
+
+
+
+
+
+
+
 
 
 
