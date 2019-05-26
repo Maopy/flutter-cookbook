@@ -585,6 +585,367 @@ void main() {
 }
 ```
 
+### 继承类
+
+#### 重载成员
+
+子类可以重载实例方法，getter 和 setter。
+
+```dart
+class SmartTelevision extends Television {
+  @override
+  void turnOn() {...}
+  // ···
+}
+```
+
+#### 运算符重载
+
+```dart
+class Vector {
+  final int x, y;
+
+  Vector(this.x, this.y);
+
+  Vector operator +(Vector v) => Vector(x + v.x, y + v.y);
+  Vector operator -(Vector v) => Vector(x - v.x, y - v.y);
+
+  // Operator == and hashCode not shown. For details, see note below.
+  // ···
+}
+
+void main() {
+  final v = Vector(2, 3);
+  final w = Vector(2, 2);
+
+  assert(v + w == Vector(4, 5));
+  assert(v - w == Vector(0, 1));
+}
+```
+
+重载 `==` 运算符时，要同时重载对象的 `hashCode` 的 getter 方法。
+
+#### noSuchMethod\(\)
+
+检测代码使用不存在的方法或属性。
+
+```dart
+class A {
+  // Unless you override noSuchMethod, using a
+  // non-existent member results in a NoSuchMethodError.
+  @override
+  void noSuchMethod(Invocation invocation) {
+    print('You tried to use a non-existent member: ' +
+        '${invocation.memberName}');
+  }
+}
+```
+
+只有在以下情况满足一种的情况下才可以调用未定义的方法：
+
+* 接收者是 `dynamic` 静态类型
+* 接收者是静态类型且定义了 `noSuchMethod()` 方法且与 `Object` 的定义不同
+
+这块不太理解，后面再补充。。。
+
+### 枚举类型
+
+枚举类用于定义表示固定数量常量的类型。
+
+```dart
+enum Color { red, green, blue }
+```
+
+枚举类成员的默认 getter，返回从 0 计数的索引值。
+
+```dart
+assert(Color.red.index == 0);
+assert(Color.green.index == 1);
+assert(Color.blue.index == 2);
+```
+
+`values` 常量返回了枚举类全部值组成的数组。
+
+```dart
+List<Color> colors = Color.values;
+assert(colors[2] == Color.blue);
+```
+
+在 `switch` 语句中使用枚举时，如果没有覆盖到枚举类的每个值，会有警告。
+
+### Mixins
+
+使用 `with` 关键字来使用一个 mixin。
+
+```dart
+class Maestro extends Person with Musical, Aggressive, Demented {
+  Maestro(String maestroName) {
+    name = maestroName;
+    canConduct = true;
+  }
+}
+```
+
+指定可以使用 mixin 的类型：
+
+```dart
+mixin MusicalPerformer on Musician {
+  // ···
+}
+```
+
+### 类属性和类方法
+
+#### 静态属性
+
+```dart
+class Queue {
+  static const initialCapacity = 16;
+  // ···
+}
+```
+
+静态属性在被使用之前不会被初始化。
+
+#### 静态方法
+
+静态方法不能在实例上使用，所以无法访问 `this` 。
+
+{% hint style="info" %}
+官方建议使用顶层函数作为工具方法，而不是一个静态方法。（值得商榷）
+{% endhint %}
+
+## 泛型
+
+如果你看基础的数组类型 `List` ，你会发现实际的类型是 `List<E>` 。&lt;...&gt; 标记 List 为一个泛型——一个有形参的类型。按照惯例，大多数类型变量都有一个单字母名称，比如 E, T, S, K, V。
+
+### 为什么用泛型?
+
+泛型常被用于保证类型安全，不过相比于允许你的代码运行之外，其实有更多优势：
+
+* 正确的指定泛型可以提高代码质量；
+* 可以利用泛型来减少代码重复；
+
+假如你定义了 `List<String>` \(读作 "list of string"\)：
+
+```dart
+var names = List<String>();
+names.addAll(['Seth', 'Kathy', 'Lars']);
+names.add(42); // Error
+```
+
+泛型的另一个好处是可以避免代码重复：
+
+比如，你要定义一个用于缓存对象的接口：
+
+```dart
+abstract class ObjectCache {
+  Object getByKey(String key);
+  void setByKey(String key, Object value);
+}
+```
+
+后来发现你想要一个字符串类型的版本，于是你写了另一个接口：
+
+```dart
+abstract class StringCache {
+  String getByKey(String key);
+  void setByKey(String key, String value);
+}
+```
+
+后来，你觉得你需要一个数字类型版本的。。。
+
+泛型可以避免这些麻烦：
+
+```dart
+abstract class Cache<T> {
+  T getByKey(String key);
+  void setByKey(String key, T value);
+}
+```
+
+这段代码中，T 是备用类型。开发者调用的时候会指定这个类型。
+
+### 使用集合字面量
+
+List, set 和 map 是可以参数化的。
+
+```dart
+var names = <String>['Seth', 'Kathy', 'Lars'];
+var uniqueNames = <String>{'Seth', 'Kathy', 'Lars'};
+var pages = <String, String>{
+  'index.html': 'Homepage',
+  'robots.txt': 'Hints for web robots',
+  'humans.txt': 'We are people, not machines'
+};
+```
+
+### 使用泛型类型的构造函数
+
+```dart
+var nameSet = Set<String>.from(names);
+var views = Map<int, View>();
+```
+
+### 泛型集合持有的类型
+
+Dart 的泛型类型是固定的，意味着在运行时持有着类型信息。
+
+```dart
+var names = List<String>();
+names.addAll(['Seth', 'Kathy', 'Lars']);
+print(names is List<String>); // true
+```
+
+### 限制泛型类型
+
+```dart
+class Foo<T extends SomeBaseClass> {
+  // Implementation goes here...
+  String toString() => "Instance of 'Foo<$T>'";
+}
+class Extender extends SomeBaseClass {...}
+var someBaseClassFoo = Foo<SomeBaseClass>();
+var extenderFoo = Foo<Extender>();
+var foo = Foo();
+print(foo); // Instance of 'Foo<SomeBaseClass>'
+```
+
+可以指定想要限制的参数类型。可以使用参数类型及其子类作为泛型参数。也可以不指定泛型参数。
+
+### 使用泛型函数
+
+起初，Dart 的泛型只能在类中使用。新的语法，_泛型函数_，允许在函数上定义类型参数。
+
+```dart
+T first<T>(List<T> ts) {
+  // Do some initial work or error checking, then...
+  T tmp = ts[0];
+  // Do some additional checking or processing...
+  return tmp;
+}
+```
+
+## 类和可见性
+
+`import` 和 `library` 指令可以用来创建模块化和可共享的代码库。库不仅提供 API，而且提供了封装性。以下划线开头的标识符仅在库的内部可见。_每个 Dart 应用程序都是一个库_，即便没有使用 `library` 指令。
+
+### 指定库前缀
+
+```dart
+import 'package:lib1/lib1.dart';
+import 'package:lib2/lib2.dart' as lib2;
+
+// Uses Element from lib1.
+Element element1 = Element();
+
+// Uses Element from lib2.
+lib2.Element element2 = lib2.Element();
+```
+
+### 引用库的一部分
+
+```dart
+// Import only foo.
+import 'package:lib1/lib1.dart' show foo;
+
+// Import all names EXCEPT foo.
+import 'package:lib2/lib2.dart' hide foo;
+```
+
+### 延迟引入
+
+延迟引入是当使用到一个库的时候再引入，一些使用场景：
+
+* 减少 App 启动时间；
+* A/B 测试；
+* 加载很少使用的功能；
+
+```dart
+import 'package:greetings/hello.dart' deferred as hello;
+Future greet() async {
+  await hello.loadLibrary();
+  hello.printGreeting();
+}
+```
+
+可以多次调用 `loadLibrary` ，库仅会被引用一次。
+
+Dart 会隐式的插入 `loadLibrary()` 到延迟引入的命名空间。函数返回一个 Futrue。
+
+## 异步支持
+
+Dart 的库包含很多的 Future 和 Stream 对象。
+
+### 声明 async 函数
+
+```dart
+Future<String> lookUpVersion() async => '1.0.0';
+```
+
+函数体可以不使用 Future API。Dart 会在需要时自动创建 Future 对象。
+
+如果函数没有返回一个有用的值，则将其返回类型设为 Futrue&lt;void&gt;。
+
+### 处理 Streams
+
+两种获取 Stream 中值得方式：
+
+* 异步循环\(`await for`\)；
+* 使用 Stream API；
+
+{% hint style="info" %}
+在使用 `await for` 之前，要明确这确实使代码更清晰，但你确实要等待 stream 的全部结果。例如，通常**不要**在 UI 事件监听中使用 await for，因为 UI 框架会不断的发送事件流。
+{% endhint %}
+
+```dart
+await for (varOrType identifier in expression) {
+  // Executes each time the stream emits a value.
+}
+```
+
+`expression` 的值必须是 Stream 类型。执行过程如下：
+
+* 等待，直到 stream 发送了一个值；
+* 执行 for 循环体，并将变量的值设为发送的值；
+* 重复 1 和 2 直到 stream 关闭；
+
+可以使用 `break` 或 `return` 语句，跳出 for 循环并取消订阅流信息。
+
+## 生成器
+
+使用 `generator` 延迟生成一系列值。Dart 内建了 2 种生成器函数：
+
+* 同步生成器：返回迭代器对象；
+* 异步生成器：返回流对象；
+
+同步生成器：
+
+```dart
+Iterable<int> naturalsTo(int n) sync* {
+  int k = 0;
+  while (k < n) yield k++;
+}
+```
+
+异步生成器：
+
+```dart
+Stream<int> asynchronousNaturalsTo(int n) async* {
+  int k = 0;
+  while (k < n) yield k++;
+}
+```
+
+
+
+
+
+
+
+
+
 
 
 
