@@ -938,27 +938,143 @@ Stream<int> asynchronousNaturalsTo(int n) async* {
 }
 ```
 
+如果你的生成器是递归的，可以使用 `yield*` 提升性能：
 
+```dart
+Iterable<int> naturalsDownFrom(int n) sync* {
+  if (n > 0) {
+    yield n;
+    yield* naturalsDownFrom(n - 1);
+  }
+}
+```
 
+## 可调用的类
 
+实现了 `call()` 方法的类的实例可以像函数一样被调用。
 
+```dart
+class WannabeFunction {
+  call(String a, String b, String c) => '$a $b $c!';
+}
 
+main() {
+  var wf = new WannabeFunction();
+  var out = wf("Hi","there,","gang");
+  print('$out');
+}
+```
 
+## Isolates
 
+大多数的电脑，甚至移动终端都是多核 CPU。要充分利用这些 CPU 核心，开发者一般使用共享内存来保证多线程程序正确执行。然而，共享内存容易导致潜在的问题，并导致代码出错。
 
+Dart 代码运行在 isolates 中而非线程。每个 isolate 都有自己的堆内存，来确保每个 isolate 的状态不会被其他 isolate 访问。
 
+## Typedefs
 
+Dart 中，函数是对象，就像字符串和数字是对象一样。`typedef` 或者 `function-type alias` 可以给函数类型命名，当声明字段或者返回值时使用。当函数类型赋值给变量时，typedef 保留了类型信息。
 
+下面的代码没有使用 typedef：
 
+```dart
+class SortedCollection {
+  Function compare;
 
+  SortedCollection(int f(Object a, Object b)) {
+    compare = f;
+  }
+}
 
+// Initial, broken implementation.
+int sort(Object a, Object b) => 0;
 
+void main() {
+  SortedCollection coll = SortedCollection(sort);
 
+  // All we know is that compare is a function,
+  // but what type of function?
+  assert(coll.compare is Function);
+}
+```
 
+将 `f` 赋值给 `compare` 时，类型信息丢失了。`f` 的类型是 `(Object, Object) -> int` 。如果我们使用显式的名称，就可以保留类型信息，开发者和开发工具都可以使用这个信息。
 
+```dart
+typedef Compare = int Function(Object a, Object b);
 
+class SortedCollection {
+  Compare compare;
 
+  SortedCollection(this.compare);
+}
 
+// Initial, broken implementation.
+int sort(Object a, Object b) => 0;
 
+void main() {
+  SortedCollection coll = SortedCollection(sort);
+  assert(coll.compare is Function);
+  assert(coll.compare is Compare);
+}
+```
 
+{% hint style="info" %}
+目前，typedefs 只能在函数类型上使用。
+{% endhint %}
+
+因为 typedefs 仅是别名，他们还提供了一种检查任意函数类型的方法。
+
+```dart
+typedef Compare<T> = int Function(T a, T b);
+
+int sort(int a, int b) => a - b;
+
+void main() {
+  assert(sort is Compare<int>); // True!
+}
+```
+
+## 元数据
+
+使用元数据给你的代码添加其他额外信息。元数据注解是以 `@` 字符开头，后面是一个编译时 常量\(例如 `deprecated`\)或者 调用一个常量构造函数。
+
+有三个注解所有的 Dart 代码都可以使用： `@deprecated`、 `@override`、 和 `@proxy`。
+
+```dart
+class Television {
+  /// _Deprecated: Use [turnOn] instead._
+  @deprecated
+  void activate() {
+    turnOn();
+  }
+
+  /// Turns the TV's power on.
+  void turnOn() {...}
+}
+```
+
+你还可以定义自己的元数据注解。 下面的示例定义了一个带有两个参数的 @todo 注解：
+
+```dart
+library todo;
+
+class Todo {
+  final String who;
+  final String what;
+
+  const Todo(this.who, this.what);
+}
+```
+
+```dart
+import 'todo.dart';
+
+@Todo('seth', 'make this do something')
+void doSomething() {
+  print('do something');
+}
+```
+
+元数据可以在 library、class、typedef、type parameter、constructor、factory、function、field、parameter 或者 variable 声明之前使用，也可以在 import 或者 export 指令之前使用。 使用反射可以在运行时获取元数据 信息。
 
